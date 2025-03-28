@@ -66,23 +66,30 @@ const QueryEditor = ({ onRunQuery }) => {
           style={{ border: "1px solid rgba(0,0,0,0.12)" }}
         >
           <LazyEditor
-            aria-label="query editor input"
-            mode="mysql"
-            theme="tomorrow"
-            name={uuid()}
-            fontSize={fontSize} // Dynamic font size
-            maxLines={Infinity}
-            minLines={6}
-            width="100%"
-            showPrintMargin={false}
-            showGutter
-            highlightActiveLine={false}
-            placeholder={"Write Query Here ..."}
-            value={currentTab.query}
-            onChange={handleQueryChange}
-            style={styles.editorStyles}
-            showLineNumbers
-          />
+  aria-label="query editor input"
+  mode="mysql"
+  theme="tomorrow"
+  name={uuid()}
+  fontSize={fontSize}
+  maxLines={Infinity}
+  minLines={6}
+  width="100%"
+  showPrintMargin={false}
+  showGutter
+  highlightActiveLine={false}
+  placeholder={"Write Query Here ..."}
+  value={currentTab.query}
+  onChange={handleQueryChange}
+  style={styles.editorStyles}
+  showLineNumbers
+  setOptions={{
+    enableBasicAutocompletion: true,  // Enables basic autocomplete
+    enableLiveAutocompletion: true,   // Enables live autocomplete while typing
+    enableSnippets: true,             // Enables SQL snippets
+    showLineNumbers: true,
+    tabSize: 2,
+  }}
+/>
         </ResizableBox>
       </Suspense>
       <Toast show={isToastVisible} type={toastType} message={toastMessage} />
