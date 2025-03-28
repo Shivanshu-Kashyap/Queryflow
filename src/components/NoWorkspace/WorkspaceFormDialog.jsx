@@ -40,13 +40,19 @@ const WorkspaceFormDialog = ({ handleCloseForm, open }) => {
       <TextField
         inputProps={{ maxLength: 25 }}
         onChange={(e) => setName(e.target.value)}
-        value={name}
-        sx={{ marginTop: "20px", "& .MuiInputBase-input": { color: "black" } }}
-        label="Name"
-        color="secondary"
-        variant="outlined"
-        required
-      />
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault(); // Prevent default form submission behavior
+          if (name.trim()) submitHandler(); // Only submit if the input is not empty
+            }
+            }}
+              value={name}
+              sx={{ marginTop: "20px", "& .MuiInputBase-input": { color: "black" } }}
+              label="Name"
+              color="secondary"
+              variant="outlined"
+              required
+/>
       <Button
         color="primaryButton"
         sx={{ color: "white", marginTop: "20px" }}
