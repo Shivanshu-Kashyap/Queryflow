@@ -10,15 +10,17 @@ import {
 import BookIcon from "@mui/icons-material/Book";
 import PropTypes from "prop-types";
 import MenuIcon from "@mui/icons-material/Menu";
-import zIndex from "@mui/material/styles/zIndex";
+import Brightness4Icon from "@mui/icons-material/Brightness4";
+import Brightness7Icon from "@mui/icons-material/Brightness7";
 import { useState } from "react";
 import CheatSheet from "../CheatSheet";
 import { Link } from "react-router-dom";
+import { useThemeContext } from "../../context/Themecontext";
+import { useTheme } from "@mui/material/styles";
 
-// Navbar styles
 const styles = {
   appBar: {
-    zIndex: zIndex.drawer + 1,
+    zIndex: 1201,
   },
   menuButton: {
     borderRadius: "10px",
@@ -33,24 +35,21 @@ const styles = {
     fontWeight: "600",
     display: "flex",
     alignItems: "center",
-    textDecoration: "none", // Ensures the text is not underlined
-    color: "inherit", // Inherits text color from theme
+    textDecoration: "none",
+    color: "inherit",
+  },
+  themeToggle: {
+    marginRight: "10px",
   },
 };
 
 const Navbar = ({ onMenuButtonClick }) => {
   const [showSheet, setShowSheet] = useState(false);
-
-  const handleCloseSheet = () => {
-    setShowSheet(false);
-  };
-
-  const handleOpenSheet = () => {
-    setShowSheet(true);
-  };
+  const theme = useTheme();
+  const colorMode = useThemeContext();
 
   return (
-    <AppBar position="absolute" sx={{ ...styles.appBar }}>
+    <AppBar position="absolute" sx={styles.appBar}>
       <Toolbar>
         <IconButton
           sx={styles.menuButton}
@@ -68,17 +67,17 @@ const Navbar = ({ onMenuButtonClick }) => {
             </Typography>
           </Link>
         </Box>
+        <Tooltip title={theme.palette.mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
+          <IconButton sx={styles.themeToggle} onClick={colorMode.toggleColorMode} color="inherit">
+            {theme.palette.mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
+          </IconButton>
+        </Tooltip>
         <Tooltip title="Cheatsheet">
-          <Button
-            color="secondary"
-            size="small"
-            name="sheet"
-            onClick={handleOpenSheet}
-          >
+          <Button color="secondary" size="small" name="sheet" onClick={() => setShowSheet(true)}>
             <BookIcon />
           </Button>
         </Tooltip>
-        <CheatSheet open={showSheet} handleCloseSheet={handleCloseSheet} />
+        <CheatSheet open={showSheet} handleCloseSheet={() => setShowSheet(false)} />
       </Toolbar>
     </AppBar>
   );
