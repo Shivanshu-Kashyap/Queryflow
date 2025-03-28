@@ -25,7 +25,7 @@ const styles = {
   },
 };
 
-const EditorControls = ({ onRunQuery, onFontSizeChange, tableData }) => {
+const EditorControls = ({ onRunQuery, onFontSizeChange }) => {
   const navigate = useNavigate();
   const { setWorkspaces, tabs, currentWorkspace, setCurrentWorkspace, setTabs } = useAppContext();
   const [fontSize, setFontSize] = useState(16);
@@ -41,58 +41,6 @@ const EditorControls = ({ onRunQuery, onFontSizeChange, tableData }) => {
     navigate("/");
   };
 
-  const formatDataForExport = (format) => {
-    if (!tableData || !tableData.rows || tableData.rows.length === 0) return "";
-
-    const { rows, metaData } = tableData;
-
-    switch (format) {
-      case "CSV File":
-        const csvHeaders = metaData.columns.map((col) => col.name).join(",");
-        const csvRows = rows.map((row) => Object.values(row).join(",")).join("\n");
-        return `${csvHeaders}\n${csvRows}`;
-
-      case "XML File":
-        return (
-          `<rows>\n` +
-          rows.map((row) =>
-            `  <row>\n` +
-            Object.entries(row)
-              .map(([key, value]) => `    <${key}>${value}</${key}>`)
-              .join("\n") +
-            `\n  </row>`
-          ).join("\n") +
-          `\n</rows>`
-        );
-
-      default: // JSON File
-        return JSON.stringify(rows, null, 2);
-    }
-  };
-
-  const handleExport = (format) => {
-    const data = formatDataForExport(format);
-    if (!data) return;
-
-    let fileType = format === "CSV File" ? "text/csv" :
-                   format === "XML File" ? "application/xml" :
-                   "application/json";
-
-    let fileExtension = format === "CSV File" ? "csv" :
-                        format === "XML File" ? "xml" : "json";
-
-    const blob = new Blob([data], { type: fileType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-
-    a.href = url;
-    a.download = `query_export.${fileExtension}`;
-    document.body.appendChild(a);
-    a.click();
-    URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-  };
-
   return (
     <Paper square sx={styles["& .MuiPaper-root"]}>
       <EditableTabs />
@@ -102,7 +50,6 @@ const EditorControls = ({ onRunQuery, onFontSizeChange, tableData }) => {
             <PlayArrowRoundedIcon />
           </Button>
         </Tooltip>
-        <MenuButton title="Export" menuItems={["CSV File", "XML File", "JSON File"]} onItemClick={handleExport} />
         <Tooltip title="Increase Font Size">
           <Button
             variant="outlined"
@@ -149,7 +96,6 @@ const EditorControls = ({ onRunQuery, onFontSizeChange, tableData }) => {
 EditorControls.propTypes = {
   onRunQuery: PropTypes.func.isRequired,
   onFontSizeChange: PropTypes.func.isRequired,
-  tableData: PropTypes.object.isRequired, // Pass the query result table data
 };
 
 export default EditorControls;

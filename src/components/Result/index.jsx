@@ -1,16 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import Proptypes from "prop-types";
-import TableHeader from "./TableHeader";
-import TableRowDialog from "./TableRowDialog";
-import {
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TablePagination,
-  TableRow,
-} from "@mui/material";
+
+import { useEffect, useMemo, useState } from "react"
+import PropTypes from "prop-types"
+import TableHeader from "./TableHeader"
+import TableRowDialog from "./TableRowDialog"
+import ResultControl from "./ResultControl" 
+import { filterTableData, filterByColumn } from "../../utils/upload"
+import { Paper, Table, TableBody, TableCell, TableContainer, TablePagination, TableRow } from "@mui/material"
 
 const styles = {
   paper: {
@@ -38,7 +33,7 @@ const styles = {
     textOverflow: "ellipsis",
     fontFamily: "Mukta",
   },
-};
+}
 
 const getTableHeaderCells = (metaData) => {
   return (
@@ -49,55 +44,89 @@ const getTableHeaderCells = (metaData) => {
       numeric: false,
       label: `${column.name}`,
     }))
-  );
-};
+  )
+}
 
 const ResultTable = ({ tableData = {} }) => {
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [activeFilter, setActiveFilter] = useState({ column: "", value: "" })
 
-  const { rows: tableRows = [], metaData } = tableData;
+  const { rows: tableRows = [], metaData } = tableData
 
   useEffect(() => {
-    setPage(0);
-  }, [tableData]);
+    setPage(0)
+    setSearchTerm("")
+    setActiveFilter({ column: "", value: "" })
+  }, [tableData])
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+    setPage(newPage)
+  }
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+    setRowsPerPage(Number.parseInt(event.target.value, 10))
+    setPage(0)
+  }
 
-  const [showTableRowDialog, setShowTableRowDialog] = useState(false);
-  const [currSelectedRow, setCurrSelectedRow] = useState();
+  const [showTableRowDialog, setShowTableRowDialog] = useState(false)
+  const [currSelectedRow, setCurrSelectedRow] = useState()
 
   const toggleTableRowDialogState = () => {
-    setShowTableRowDialog((val) => !val);
-  };
+    setShowTableRowDialog((val) => !val)
+  }
 
   const handleTableRowDialogSuccess = () => {
-    toggleTableRowDialogState();
+    toggleTableRowDialogState()
     setTimeout(() => {
-      setCurrSelectedRow({});
-    }, 500);
-  };
+      setCurrSelectedRow({})
+    }, 500)
+  }
 
   const handleTableRowClick = (row) => {
-    setCurrSelectedRow(row);
-    toggleTableRowDialogState();
-  };
+    setCurrSelectedRow(row)
+    toggleTableRowDialogState()
+  }
 
-  const filteredRows = useMemo(() => {
-    return tableRows.length > 0
-      ? tableRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-      : [];
-  }, [tableRows, page, rowsPerPage]);
+  const handleSearch = (term) => {
+    setSearchTerm(term)
+    setPage(0)
+  }
+
+  const handleFilter = (column) => {
+    // For simplicity, we're just setting the column to filter by
+    // In a real implementation, you'd show a dialog to enter filter value
+    const value = prompt(`Enter value to filter ${column} by:`)
+    if (value !== null) {
+      setActiveFilter({ column, value })
+      setPage(0)
+    }
+  }
+
+  const filteredData = useMemo(() => {
+    let filtered = [...tableRows]
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filterTableData(filtered, searchTerm)
+    }
+
+    // Apply column filter
+    if (activeFilter.column && activeFilter.value) {
+      filtered = filterByColumn(filtered, activeFilter.column, activeFilter.value)
+    }
+
+    return filtered
+  }, [tableRows, searchTerm, activeFilter])
+
+  const paginatedRows = useMemo(() => {
+    return filteredData.length > 0 ? filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) : []
+  }, [filteredData, page, rowsPerPage])
 
   return (
     <Paper sx={styles.paper}>
+      <ResultControl tableData={tableData} onSearch={handleSearch} onFilter={handleFilter} />
       <TableContainer sx={styles.tableContainer}>
         <Table
           stickyHeader
@@ -110,14 +139,11 @@ const ResultTable = ({ tableData = {} }) => {
           }}
         >
           {/* Table Header */}
-          <TableHeader
-            headerCells={getTableHeaderCells(metaData)}
-            rowCount={filteredRows.length}
-          />
+          <TableHeader headerCells={getTableHeaderCells(metaData)} rowCount={paginatedRows.length} />
 
           {/* Table Body */}
           <TableBody>
-            {filteredRows.map((row, rowIndex) => {
+            {paginatedRows.map((row, rowIndex) => {
               return (
                 <TableRow
                   sx={styles.tableRowItem}
@@ -125,19 +151,16 @@ const ResultTable = ({ tableData = {} }) => {
                   tabIndex={-1}
                   key={`result-row-${rowIndex}`}
                   onClick={() => {
-                    handleTableRowClick(row);
+                    handleTableRowClick(row)
                   }}
                 >
                   {Object.keys(row).map((key, cellIndex) => (
-                    <TableCell
-                      sx={styles.tableCell}
-                      key={`result-cell-${key}-${rowIndex}-${cellIndex}`}
-                    >
+                    <TableCell sx={styles.tableCell} key={`result-cell-${key}-${rowIndex}-${cellIndex}`}>
                       {row[key]}
                     </TableCell>
                   ))}
                 </TableRow>
-              );
+              )
             })}
           </TableBody>
         </Table>
@@ -146,7 +169,7 @@ const ResultTable = ({ tableData = {} }) => {
       <TablePagination
         rowsPerPageOptions={[10, 25, 50]}
         component="div"
-        count={tableRows.length}
+        count={filteredData.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
@@ -170,11 +193,11 @@ const ResultTable = ({ tableData = {} }) => {
         handleSuccessAction={handleTableRowDialogSuccess}
       />
     </Paper>
-  );
-};
+  )
+}
 
 ResultTable.propTypes = {
-  tableData: Proptypes.object.isRequired,
-};
+  tableData: PropTypes.object.isRequired,
+}
 
-export default ResultTable;
+export default ResultTable
