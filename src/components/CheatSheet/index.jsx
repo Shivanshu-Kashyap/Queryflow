@@ -6,6 +6,7 @@ import {
   ListItem,
   ListItemText,
   Typography,
+  Button,
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { EXAMPLE_QUERIES } from "../../utils/common";
@@ -31,16 +32,14 @@ const CheatSheet = ({ open, handleCloseSheet }) => {
         "& .MuiDialog-paper": { padding: "25px 40px" },
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-        }}
-        className="header"
-      >
-        <BookIcon
-          sx={{ paddingTop: "2px", fontSize: "30px", marginRight: "5px" }}
-        />
-        <Typography variant="h5">Cheatsheet</Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }} className="header">
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <BookIcon sx={{ paddingTop: "2px", fontSize: "30px", marginRight: "5px" }} />
+          <Typography variant="h5">Cheatsheet</Typography>
+        </Box>
+        <Button variant="contained" color="error" onClick={handleCloseSheet}>
+          Cut Screen
+        </Button>
       </Box>
       <Box
         sx={{

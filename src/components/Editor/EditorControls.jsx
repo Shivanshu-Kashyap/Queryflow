@@ -2,7 +2,7 @@ import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import EditableTabs from "../EditableTabs";
 import MenuButton from "../MenuButton";
 import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
-import FormatSizeIcon from "@mui/icons-material/FormatSize"; // Font size adjustment icon
+import FormatSizeIcon from "@mui/icons-material/FormatSize";
 import PropTypes from "prop-types";
 import { Box, Button, Paper, Tooltip } from "@mui/material";
 import useAppContext from "../../hooks/useAppContext";
@@ -25,51 +25,62 @@ const styles = {
   },
 };
 
-const EditorControls = ({ onRunQuery, onFontSizeChange }) => {
+const EditorControls = ({ onRunQuery, onFontSizeChange, tableData }) => {
   const navigate = useNavigate();
-  const {
-    setWorkspaces,
-    tabs,
-    currentWorkspace,
-    setCurrentWorkspace,
-    setTabs,
-  } = useAppContext();
-  
-  const [fontSize, setFontSize] = useState(16); // Default font size
+  const { setWorkspaces, tabs, currentWorkspace, setCurrentWorkspace, setTabs } = useAppContext();
+  const [fontSize, setFontSize] = useState(16);
 
   const onSaveWorkspace = () => {
-    setWorkspaces((prevWorkspaces) => {
-      return prevWorkspaces.map((workspace) => {
-        if (workspace.id === currentWorkspace) {
-          return { ...workspace, tabs: tabs };
-        }
-        return workspace;
-      });
-    });
+    setWorkspaces((prevWorkspaces) =>
+      prevWorkspaces.map((workspace) =>
+        workspace.id === currentWorkspace ? { ...workspace, tabs } : workspace
+      )
+    );
     setTabs([]);
     setCurrentWorkspace("");
     navigate("/");
   };
 
-  const handleExport = (format) => {
-    let fileType = "";
-    let fileExtension = "";
+  const formatDataForExport = (format) => {
+    if (!tableData || !tableData.rows || tableData.rows.length === 0) return "";
+
+    const { rows, metaData } = tableData;
 
     switch (format) {
       case "CSV File":
-        fileType = "text/csv";
-        fileExtension = "csv";
-        break;
-      case "XML File":
-        fileType = "application/xml";
-        fileExtension = "xml";
-        break;
-      default:
-        fileType = "application/json";
-        fileExtension = "json";
-    }
+        const csvHeaders = metaData.columns.map((col) => col.name).join(",");
+        const csvRows = rows.map((row) => Object.values(row).join(",")).join("\n");
+        return `${csvHeaders}\n${csvRows}`;
 
-    const data = JSON.stringify(tabs, null, 2);
+      case "XML File":
+        return (
+          `<rows>\n` +
+          rows.map((row) =>
+            `  <row>\n` +
+            Object.entries(row)
+              .map(([key, value]) => `    <${key}>${value}</${key}>`)
+              .join("\n") +
+            `\n  </row>`
+          ).join("\n") +
+          `\n</rows>`
+        );
+
+      default: // JSON File
+        return JSON.stringify(rows, null, 2);
+    }
+  };
+
+  const handleExport = (format) => {
+    const data = formatDataForExport(format);
+    if (!data) return;
+
+    let fileType = format === "CSV File" ? "text/csv" :
+                   format === "XML File" ? "application/xml" :
+                   "application/json";
+
+    let fileExtension = format === "CSV File" ? "csv" :
+                        format === "XML File" ? "xml" : "json";
+
     const blob = new Blob([data], { type: fileType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -87,21 +98,11 @@ const EditorControls = ({ onRunQuery, onFontSizeChange }) => {
       <EditableTabs />
       <Box sx={styles.editorButtonsWrapper} display="flex">
         <Tooltip title="Run">
-          <Button
-            variant="outlined"
-            color="secondary"
-            size="small"
-            sx={styles.editorButton}
-            onClick={onRunQuery}
-          >
+          <Button variant="outlined" color="secondary" size="small" sx={styles.editorButton} onClick={onRunQuery}>
             <PlayArrowRoundedIcon />
           </Button>
         </Tooltip>
-        <MenuButton
-          title="Export"
-          menuItems={["CSV File", "XML File", "JSON File"]}
-          onItemClick={(format) => handleExport(format)}
-        />
+        <MenuButton title="Export" menuItems={["CSV File", "XML File", "JSON File"]} onItemClick={handleExport} />
         <Tooltip title="Increase Font Size">
           <Button
             variant="outlined"
@@ -135,13 +136,7 @@ const EditorControls = ({ onRunQuery, onFontSizeChange }) => {
           </Button>
         </Tooltip>
         <Tooltip title="Save">
-          <Button
-            variant="outlined"
-            color="secondary"
-            size="small"
-            sx={styles.editorButton}
-            onClick={onSaveWorkspace}
-          >
+          <Button variant="outlined" color="secondary" size="small" sx={styles.editorButton} onClick={onSaveWorkspace}>
             <SaveRoundedIcon />
           </Button>
         </Tooltip>
@@ -154,6 +149,7 @@ const EditorControls = ({ onRunQuery, onFontSizeChange }) => {
 EditorControls.propTypes = {
   onRunQuery: PropTypes.func.isRequired,
   onFontSizeChange: PropTypes.func.isRequired,
+  tableData: PropTypes.object.isRequired, // Pass the query result table data
 };
 
 export default EditorControls;
