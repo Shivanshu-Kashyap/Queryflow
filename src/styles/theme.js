@@ -33,14 +33,14 @@ const getTheme = (mode) =>
       background: {
         light: mode === "light" ? "#eef2f4" : "#2c2c2c",
         default: mode === "light" ? "#fff" : "#121212",
-        dark: mode === "light" ? "#022242" : "#000",
+        dark: mode === "light" ? "#f4f4f4" : "#000",
         primaryButton: mode === "light" ? "#066dc9" : "#2196f3",
         paper: mode === "light" ? "#fff" : "#1e1e1e",
       },
       text: {
         primary: mode === "light" ? "#066dc9" : "#90caf9",
         secondary: mode === "light" ? "#000" : "#b0bec5",
-        primaryDark: mode === "light" ? "#d1d1c9" : "#fff",
+        primaryDark: mode === "light" ? "#1a1a2e" : "#fff",
         secondaryDark: mode === "light" ? "#465f6e" : "#c3ccd4",
         disabled: mode === "light" ? "rgba(0, 0, 0, 0.38)" : "rgba(255, 255, 255, 0.5)",
       },
